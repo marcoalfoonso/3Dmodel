@@ -25,37 +25,39 @@ client.on("error", (err) => {
   console.error("Error:", err);
 });
 
-let g1 = 0;
-let g2 = 0;
-let g3 = 0;
+//Asignar variables globales para las articulaciones
+
+let joint1, joint2, joint3;
+let g1=0;
+let g2=0;
+let g3=0;
+
+//se obtienen los valores de mqtt
+
+client.on("message",(topic,message)=>{
+    const value = Number(message.toString());
+    console.log("Topic: ",topic,"Value: ",value);
+
+
+    if(topic === "q1"){
+        console.log("q1: ", value);
+        g1 = value;
+    }
+
+    if(topic === "q2"){
+        console.log("q2: ", value);
+        g2 = value;
+    }
+
+    if(topic === "q3"){
+        console.log("q3: ", value);
+        g3 = value;
+    }
+
+});
 
 
 document.addEventListener("DOMContentLoaded", function(){
-
-    //se obtienen los valores de mqtt
-
-    client.on("message",(topic,message)=>{
-        const value = Number(message.toString());
-        console.log("Topic: ",topic,"Value: ",value);
-
-
-        if(topic === "q1"){
-            console.log("q1: ", value);
-            g1 = value;
-        }
-
-        if(topic === "q2"){
-            console.log("q2: ", value);
-            g2 = value;
-        }
-
-        if(topic === "q3"){
-            console.log("q3: ", value);
-            g3 = value;
-        }
-
-    });
-
 
     const container = document.getElementById("scope");
     const renderer = new THREE.WebGLRenderer({antialias:true});
@@ -69,8 +71,16 @@ document.addEventListener("DOMContentLoaded", function(){
         1000
     );
 
+    const plane = new THREE.Mesh(
+        new THREE.PlaneGeometry(5,5),
+        new THREE.MeshStandardMaterial({ color: 0x222222 })
+    );
+    plane.rotation.x = -Math.PI/2;
+    scene.add(plane);
+
     camera.position.set(1,1.2,-1.3);
     camera.lookAt(0,0,0);
+
 
     function resize(){
         const width = container.clientWidth;
@@ -106,7 +116,7 @@ document.addEventListener("DOMContentLoaded", function(){
     robot.add(base);
 
     // JOINT 1
-    const joint1 = new THREE.Group();
+    joint1 = new THREE.Group();
     joint1.position.y = 0.05;
     base.add(joint1);
 
@@ -119,7 +129,7 @@ document.addEventListener("DOMContentLoaded", function(){
     joint1.add(link1);
 
     // JOINT 2
-    const joint2 = new THREE.Group();
+    joint2 = new THREE.Group();
     joint2.position.y = l1;
     joint1.add(joint2);
 
@@ -132,7 +142,7 @@ document.addEventListener("DOMContentLoaded", function(){
     joint2.add(link2);
 
     // JOINT 3
-    const joint3 = new THREE.Group();
+    joint3 = new THREE.Group();
     joint3.position.y = l2;
     joint2.add(joint3);
 
@@ -145,19 +155,10 @@ document.addEventListener("DOMContentLoaded", function(){
     joint3.add(link3);
 
 
-    let lastSend = 0;
-    let lastSend2 = 0;
-    let lastSend3 = 0;
-
-
-    let q1 = g1 * Math.PI/180;
-    let q2 = g2 * Math.PI/180;
-    let q3 = g3 * Math.PI/180;
-
     function animate(){
-        joint1.rotation.y = q1;
-        joint2.rotation.z = q2;
-        joint3.rotation.z = q3;
+        joint1.rotation.y = g1* Math.PI/180 + Math.PI;
+        joint2.rotation.z = -g2* Math.PI/180 + Math.PI/2;
+        joint3.rotation.z = g3* Math.PI/180;
 
         renderer.render(scene, camera);
     }   
